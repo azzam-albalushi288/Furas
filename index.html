@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Furas — SME Support Navigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#182620;
+    --paper:#F6F1E4;
+    --paper-2:#EEE7D3;
+    --teal:#0B3D2E;
+    --teal-light:#E1EEE7;
+    --gold:#B9862F;
+    --gold-light:#F3E6C9;
+    --maroon:#7A2E2E;
+    --maroon-light:#F1DEDA;
+    --line:rgba(24,38,32,0.14);
+    --font-display:'Fraunces', serif;
+    --font-body:'Inter', sans-serif;
+    --font-ar:'Tajawal', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);}
+  [dir="rtl"] body, [dir="rtl"] *{font-family:var(--font-ar);}
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px 60px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:22px 0 10px;}
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand-mark{font-family:var(--font-display);font-weight:600;font-size:26px;color:var(--teal);}
+  [dir="rtl"] .brand-mark{font-family:var(--font-ar);}
+  .brand-sub{font-size:12px;color:var(--ink);opacity:0.55;letter-spacing:0.02em;}
+  .lang-toggle{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;}
+  .lang-toggle button{border:none;background:transparent;padding:6px 14px;font-size:13px;font-family:var(--font-body);cursor:pointer;color:var(--ink);opacity:0.6;}
+  .lang-toggle button.active{background:var(--teal);color:var(--paper);opacity:1;}
+
+  .hero{padding:28px 0 34px;border-bottom:1px solid var(--line);}
+  .hero h1{font-family:var(--font-display);font-weight:500;font-size:34px;line-height:1.15;margin:0 0 14px;color:var(--teal);}
+  [dir="rtl"] .hero h1{font-family:var(--font-ar);font-weight:700;}
+  .hero p{font-size:16px;line-height:1.6;margin:0;max-width:480px;opacity:0.82;}
+
+  .stepper{display:flex;gap:8px;margin:28px 0 20px;}
+  .dot{flex:1;height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
+  .dot i{display:block;height:100%;width:0%;background:var(--teal);transition:width 0.4s ease;}
+  .dot.done i, .dot.active i{width:100%;}
+
+  .panel{display:none;}
+  .panel.active{display:block;animation:rise 0.35s ease both;}
+  @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  .q-label{font-size:13px;text-transform:uppercase;letter-spacing:0.06em;color:var(--gold);font-weight:600;margin:0 0 6px;}
+  [dir="rtl"] .q-label{text-transform:none;letter-spacing:0;}
+  .q-title{font-family:var(--font-display);font-weight:500;font-size:22px;margin:0 0 20px;color:var(--ink);}
+  [dir="rtl"] .q-title{font-family:var(--font-ar);font-weight:700;}
+
+  .opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .opt{border:1px solid var(--line);background:#fff;border-radius:12px;padding:16px 14px;cursor:pointer;text-align:start;font-family:var(--font-body);}
+  [dir="rtl"] .opt{font-family:var(--font-ar);}
+  .opt .opt-title{font-size:15px;font-weight:600;color:var(--ink);display:block;margin-bottom:3px;}
+  .opt .opt-sub{font-size:12.5px;color:var(--ink);opacity:0.6;display:block;}
+  .opt:hover{border-color:var(--teal);}
+  .opt.selected{border-color:var(--teal);background:var(--teal-light);}
+
+  .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:26px;}
+  .btn{font-family:var(--font-body);font-size:14px;font-weight:600;padding:11px 22px;border-radius:999px;border:1px solid var(--teal);background:var(--teal);color:var(--paper);cursor:pointer;}
+  [dir="rtl"] .btn{font-family:var(--font-ar);}
+  .btn.ghost{background:transparent;color:var(--teal);}
+  .btn:disabled{opacity:0.35;cursor:not-allowed;}
+  .err{font-size:13px;color:var(--maroon);margin-top:10px;display:none;}
+
+  .result-head{text-align:center;padding:10px 0 6px;}
+  .stamp-wrap{width:88px;height:88px;margin:0 auto 14px;position:relative;}
+  .stamp{width:100%;height:100%;border-radius:50%;border:3px solid var(--maroon);display:flex;align-items:center;justify-content:center;transform:scale(0) rotate(-25deg);animation:stamp-in 0.5s cubic-bezier(.2,1.4,.4,1) 0.15s forwards;}
+  @keyframes stamp-in{to{transform:scale(1) rotate(-12deg);}}
+  .stamp-inner{width:66px;height:66px;border-radius:50%;border:1.5px solid var(--maroon);display:flex;align-items:center;justify-content:center;}
+  .stamp-check{font-size:26px;color:var(--maroon);}
+  .result-eyebrow{font-size:12.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink);opacity:0.55;margin:0 0 4px;}
+  [dir="rtl"] .result-eyebrow{text-transform:none;letter-spacing:0;}
+  .guidance-banner{background:var(--gold-light);border:1px solid var(--gold);border-radius:12px;padding:12px 16px;font-size:12.5px;line-height:1.5;color:var(--ink);margin:0 0 20px;}
+  .guidance-banner b{color:var(--maroon);}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 20px 18px;margin-bottom:14px;}
+  .card-title{font-family:var(--font-display);font-weight:500;font-size:19px;margin:0 0 8px;color:var(--teal);}
+  [dir="rtl"] .card-title{font-family:var(--font-ar);font-weight:700;}
+  .card p{font-size:14.5px;line-height:1.55;margin:0 0 8px;opacity:0.85;}
+  .card .tag{display:inline-block;font-size:11.5px;font-weight:600;background:var(--gold-light);color:var(--gold);padding:3px 10px;border-radius:999px;margin-bottom:10px;}
+  [dir="rtl"] .card .tag{font-family:var(--font-ar);}
+  .next-step{border-top:1px dashed var(--line);margin-top:10px;padding-top:10px;font-size:13.5px;}
+  .next-step b{color:var(--teal);}
+  .detail-row{display:flex;gap:10px;align-items:flex-start;margin-top:10px;}
+  .detail-icon{font-size:15px;line-height:1.5;flex-shrink:0;}
+  .detail-text{font-size:13.5px;line-height:1.5;opacity:0.85;}
+  .detail-text b{color:var(--teal);display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;opacity:1;}
+  .go-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13.5px;font-weight:600;color:#fff;background:var(--teal);text-decoration:none;padding:9px 16px;border-radius:999px;}
+  .go-link:hover{opacity:0.88;}
+  .go-link:after{content:"→";}
+  [dir="rtl"] .go-link:after{content:"←";}
+  .first-step .go-link, .ready-note .go-link{background:var(--maroon);}
+
+  .first-step{background:var(--maroon-light);border-radius:14px;padding:16px 18px;font-size:14px;line-height:1.55;margin-top:18px;}
+  .first-step b{color:var(--maroon);}
+  .ready-note{background:var(--teal-light);border-radius:14px;padding:14px 18px;font-size:13.5px;line-height:1.5;margin-top:18px;color:var(--teal);}
+
+  .restart{text-align:center;margin-top:24px;}
+  .restart button{background:none;border:none;color:var(--ink);opacity:0.55;font-size:13px;text-decoration:underline;cursor:pointer;font-family:var(--font-body);}
+  [dir="rtl"] .restart button{font-family:var(--font-ar);}
+
+  .foot-note{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;opacity:0.5;line-height:1.6;}
+
+  .opt:focus-visible,.btn:focus-visible,.lang-toggle button:focus-visible,.go-link:focus-visible,.restart button:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .answers-line{font-size:12.5px;opacity:0.6;line-height:1.5;margin:0 0 16px;text-align:center;}
+  .why{font-size:12.5px;opacity:0.65;margin-top:10px;line-height:1.5;}
+  .why b{color:var(--teal);}
+  .sector-note{font-size:12.5px;line-height:1.5;margin-top:8px;opacity:0.8;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark" id="brandMark">Furas</span>
+      <span class="brand-sub" id="brandSub">فرص · SME Navigator</span>
+    </div>
+    <div class="lang-toggle">
+      <button id="btnEN" class="active" onclick="setLang('en')">EN</button>
+      <button id="btnAR" onclick="setLang('ar')">AR</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <h1 id="heroTitle">Find the support you already qualify for</h1>
+    <p id="heroSub">Oman has real funding, training and licensing programmes for small businesses. This tool asks a few quick questions and points you to the ones that actually fit yours.</p>
+  </div>
+
+  <div class="stepper">
+    <div class="dot active" id="dot1"><i></i></div>
+    <div class="dot" id="dot2"><i></i></div>
+    <div class="dot" id="dot3"><i></i></div>
+    <div class="dot" id="dot4"><i></i></div>
+    <div class="dot" id="dot5"><i></i></div>
+    <div class="dot" id="dot6"><i></i></div>
+  </div>
+
+  <div class="panel active" id="panel1">
+    <p class="q-label" id="qLabel1">Step 1 of 6</p>
+    <h2 class="q-title" id="qTitle1">What kind of business is it?</h2>
+    <div class="opt-grid" id="grid1"></div>
+    <div class="err" role="alert" id="err1">Choose one to continue</div>
+    <div class="nav-row">
+      <span></span>
+      <button class="btn" onclick="next(1)">Continue</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel2">
+    <p class="q-label" id="qLabel2">Step 2 of 6</p>
+    <h2 class="q-title" id="qTitle2">How long has it been running?</h2>
+    <div class="opt-grid" id="grid2"></div>
+    <div class="err" role="alert" id="err2">Choose one to continue</div>
+    <div class="nav-row">
+      <button class="btn ghost" onclick="back(2)">Back</button>
+      <button class="btn" onclick="next(2)">Continue</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel3">
+    <p class="q-label" id="qLabel3">Step 3 of 6</p>
+    <h2 class="q-title" id="qTitle3">What do you need most right now?</h2>
+    <div class="opt-grid" id="grid3"></div>
+    <div class="err" role="alert" id="err3">Choose one to continue</div>
+    <div class="nav-row">
+      <button class="btn ghost" onclick="back(3)">Back</button>
+      <button class="btn" onclick="next(3)">Continue</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel4">
+    <p class="q-label" id="qLabel4">Step 4 of 6</p>
+    <h2 class="q-title" id="qTitle4">Do you already have your Riyada Entrepreneurship Card?</h2>
+    <div class="opt-grid" id="grid4"></div>
+    <div class="err" role="alert" id="err4">Choose one to continue</div>
+    <div class="nav-row">
+      <button class="btn ghost" onclick="back(4)">Back</button>
+      <button class="btn" onclick="next(4)">Continue</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel5">
+    <p class="q-label" id="qLabel5">Step 5 of 6</p>
+    <h2 class="q-title" id="qTitle5">Is the business 100% Omani-owned and independently run?</h2>
+    <div class="opt-grid" id="grid5"></div>
+    <div class="err" role="alert" id="err5">Choose one to continue</div>
+    <div class="nav-row">
+      <button class="btn ghost" onclick="back(5)">Back</button>
+      <button class="btn" onclick="next(5)">Continue</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel6">
+    <p class="q-label" id="qLabel6">Step 6 of 6</p>
+    <h2 class="q-title" id="qTitle6">Roughly how many people work in the business?</h2>
+    <div class="opt-grid" id="grid6"></div>
+    <div class="err" role="alert" id="err6">Choose one to see your matches</div>
+    <div class="nav-row">
+      <button class="btn ghost" onclick="back(6)">Back</button>
+      <button class="btn" onclick="finish()">See matches</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panelResult">
+    <div class="result-head">
+      <div class="stamp-wrap"><div class="stamp"><div class="stamp-inner"><span class="stamp-check">✓</span></div></div></div>
+      <p class="result-eyebrow" id="resultEyebrow">Matched for your business</p>
+    </div>
+    <div class="guidance-banner" id="guidanceBanner"></div>
+    <p class="answers-line" id="answersLine"></p>
+    <div id="resultCards"></div>
+    <div class="first-step" id="firstStepBox" style="display:none;"></div>
+    <div class="ready-note" id="readyNote" style="display:none;"></div>
+    <div class="restart"><button onclick="restart()" id="restartBtn">Start over</button></div>
+  </div>
+
+  <div class="foot-note" id="footNote">Programme details reflect publicly available information on Riyada, the Oman Development Bank and Invest Easy as of 2026. Confirm current terms directly with the provider before applying. Built for the Takatuf Oman Scholars ILP 2026 Individual Research Report.</div>
+</div>
+
+<script>
+const T = {
+  en: {
+    brandSub: "فرص · SME Navigator",
+    heroTitle: "Find the support you already qualify for",
+    heroSub: "Oman has real funding, training and licensing programmes for small businesses. This tool asks a few quick questions and points you to the ones that actually fit yours.",
+    stepLabels: ["Step 1 of 6","Step 2 of 6","Step 3 of 6","Step 4 of 6","Step 5 of 6","Step 6 of 6"],
+    q1: "What kind of business is it?",
+    q2: "How long has it been running?",
+    q3: "What do you need most right now?",
+    q4: "Do you already have your Riyada Entrepreneurship Card?",
+    q5: "Is the business 100% Omani-owned and independently run?",
+    q6: "Roughly how many people work in the business?",
+    errPick: "Choose one to continue",
+    errPickLast: "Choose one to see your matches",
+    continueBtn: "Continue",
+    backBtn: "Back",
+    seeMatches: "See matches",
+    resultEyebrow: "Matched for your business",
+    guidanceBanner: "<b>This is guidance, not a decision.</b> Furas suggests which programmes are likely worth applying to based on what you've told it — the provider (Riyada, ODB, or Invest Easy) makes the final eligibility decision.",
+    startOver: "Start over",
+    footNote: "Furas offers guidance only and does not decide eligibility. Programme details reflect publicly available information on Riyada, the Oman Development Bank and Invest Easy as of 2026. The provider makes the final eligibility decision — confirm current terms directly with them before applying. Built for the Takatuf Oman Scholars ILP 2026 Individual Research Report.",
+    grid1: [
+      {v:"food", t:"Food & beverage", s:"Restaurant, café, catering"},
+      {v:"beauty", t:"Beauty & personal care", s:"Makeup, salon, grooming"},
+      {v:"print", t:"Printing & design", s:"Print shop, signage, design"},
+      {v:"other", t:"Retail or other craft", s:"Shop, handmade goods, services"}
+    ],
+    grid2: [
+      {v:"new", t:"Newer business", s:"Under 1 year running"},
+      {v:"established", t:"Established", s:"1 year or more running"}
+    ],
+    grid3: [
+      {v:"funding", t:"Funding", s:"Loans, working capital, financing"},
+      {v:"training", t:"Training & mentoring", s:"Guidance, incubation, workspace"},
+      {v:"marketing", t:"Marketing & visibility", s:"Getting found by customers"},
+      {v:"registration", t:"Registration & licensing", s:"Making the business official"}
+    ],
+    grid4: [
+      {v:"yes", t:"Yes, I have it", s:"Already registered with Riyada"},
+      {v:"no", t:"No, not yet", s:"Haven't registered with Riyada"}
+    ],
+    grid5: [
+      {v:"yes", t:"Yes, fully", s:"100% Omani-owned, not a branch of a larger company"},
+      {v:"no", t:"No / partly", s:"Foreign ownership, or part of a larger company"},
+      {v:"unsure", t:"Not sure", s:"I'd need to check this"}
+    ],
+    grid6: [
+      {v:"micro", t:"1–10 people", s:"Micro business"},
+      {v:"small", t:"11–50 people", s:"Small business"},
+      {v:"medium", t:"51–150 people", s:"Medium business"}
+    ],
+    firstStepLabel: "Before any of this",
+    firstStepBody: "register with Riyada to get your Entrepreneurship Card — it's the gateway most of these programmes ask for first. Once you have it, you can apply directly.",
+    readyNoteBody: "You already have your Entrepreneurship Card, so you can apply for these directly — no extra registration step needed."
+  },
+  ar: {
+    brandSub: "Furas · دليل دعم المشاريع",
+    heroTitle: "اكتشف الدعم المتاح لمشروعك",
+    heroSub: "تمتلك عُمان برامج تمويل وتدريب وترخيص حقيقية لأصحاب المشاريع الصغيرة. تطرح هذه الأداة بضعة أسئلة سريعة وتدلّك على الأنسب لمشروعك.",
+    stepLabels: ["الخطوة ١ من ٦","الخطوة ٢ من ٦","الخطوة ٣ من ٦","الخطوة ٤ من ٦","الخطوة ٥ من ٦","الخطوة ٦ من ٦"],
+    q1: "ما نوع مشروعك؟",
+    q2: "منذ متى يعمل المشروع؟",
+    q3: "ما الذي تحتاجه أكثر الآن؟",
+    q4: "هل تمتلك بالفعل بطاقة رائد الأعمال من ريادة؟",
+    q5: "هل المشروع مملوك ومُدار بالكامل من عُمانيين ومستقل؟",
+    q6: "تقريبًا، كم عدد العاملين في المشروع؟",
+    errPick: "اختر خيارًا للمتابعة",
+    errPickLast: "اختر خيارًا لعرض النتائج",
+    continueBtn: "متابعة",
+    backBtn: "رجوع",
+    seeMatches: "عرض النتائج",
+    resultEyebrow: "الأنسب لمشروعك",
+    guidanceBanner: "<b>هذا إرشاد وليس قرارًا نهائيًا.</b> يقترح فُرص البرامج الأنسب بناءً على ما أدخلته، لكن القرار النهائي للأهلية يعود للجهة المعنية (ريادة، بنك التنمية العُماني، أو Invest Easy).",
+    startOver: "البدء من جديد",
+    footNote: "فُرص يقدّم إرشادًا فقط ولا يقرر الأهلية. تعكس هذه المعلومات ما هو متاح للعموم من برامج ريادة وبنك التنمية العُماني وInvest Easy حتى عام ٢٠٢٦. القرار النهائي للأهلية يعود للجهة المعنية — يُرجى التأكد من الشروط الحالية مباشرة قبل التقديم. أُعدّت هذه الأداة ضمن التقرير البحثي الفردي لبرنامج رواد عُمان ILP 2026.",
+    grid1: [
+      {v:"food", t:"المطاعم والأغذية", s:"مطعم، مقهى، تموين"},
+      {v:"beauty", t:"التجميل والعناية الشخصية", s:"مكياج، صالون، عناية"},
+      {v:"print", t:"الطباعة والتصميم", s:"محل طباعة، لافتات، تصميم"},
+      {v:"other", t:"تجارة أو حرف أخرى", s:"محل، منتجات يدوية، خدمات"}
+    ],
+    grid2: [
+      {v:"new", t:"مشروع جديد", s:"أقل من سنة"},
+      {v:"established", t:"مشروع قائم", s:"سنة فأكثر"}
+    ],
+    grid3: [
+      {v:"funding", t:"تمويل", s:"قروض، رأس مال تشغيلي"},
+      {v:"training", t:"تدريب وإرشاد", s:"توجيه، احتضان، مساحة عمل"},
+      {v:"marketing", t:"تسويق وظهور", s:"الوصول إلى الزبائن"},
+      {v:"registration", t:"تسجيل وترخيص", s:"توثيق المشروع رسميًا"}
+    ],
+    grid4: [
+      {v:"yes", t:"نعم، أمتلكها", s:"مسجّل بالفعل في ريادة"},
+      {v:"no", t:"لا، ليس بعد", s:"لم أسجّل في ريادة بعد"}
+    ],
+    grid5: [
+      {v:"yes", t:"نعم، بالكامل", s:"ملكية عُمانية ١٠٠٪، وليس فرعًا لشركة أكبر"},
+      {v:"no", t:"لا / جزئيًا", s:"ملكية أجنبية، أو جزء من شركة أكبر"},
+      {v:"unsure", t:"غير متأكد", s:"أحتاج للتحقق من هذا"}
+    ],
+    grid6: [
+      {v:"micro", t:"١–١٠ أشخاص", s:"مشروع صغير جدًا (متناهي الصغر)"},
+      {v:"small", t:"١١–٥٠ شخصًا", s:"مشروع صغير"},
+      {v:"medium", t:"٥١–١٥٠ شخصًا", s:"مشروع متوسط"}
+    ],
+    firstStepLabel: "قبل كل شيء",
+    firstStepBody: "سجّل في ريادة للحصول على بطاقة رائد الأعمال — فهي البوابة التي تطلبها معظم هذه البرامج أولًا. بعد الحصول عليها يمكنك التقديم مباشرة.",
+    readyNoteBody: "لديك بالفعل بطاقة رائد الأعمال، لذا يمكنك التقديم لهذه البرامج مباشرة دون خطوة تسجيل إضافية."
+  }
+};
+
+Object.assign(T.en, {
+  whyLabel: "Why this matched",
+  whyNeed: "Your main need:",
+  whyStage: "Time running:",
+  whyOwner: "Ownership:",
+  answersLabel: "Your answers",
+  priorityYes: "Your sector (food & beverage) is a priority sector for this programme.",
+  priorityNo: "This programme gives priority to food production and craft industries; other sectors may still apply — check with Riyada.",
+  lastChecked: "Programme details last checked:"
+});
+Object.assign(T.ar, {
+  whyLabel: "سبب الاقتراح",
+  whyNeed: "حاجتك الرئيسية:",
+  whyStage: "مدة العمل:",
+  whyOwner: "الملكية:",
+  answersLabel: "إجاباتك",
+  priorityYes: "قطاعك (المطاعم والأغذية) من القطاعات ذات الأولوية في هذا البرنامج.",
+  priorityNo: "يعطي هذا البرنامج أولوية لإنتاج الأغذية والصناعات الحرفية، وقد تنطبق شروطه على قطاعات أخرى — يُرجى التأكد من ريادة.",
+  lastChecked: "آخر تحقق من تفاصيل البرامج:"
+});
+
+// Date the programme details below were last checked against each provider's website.
+// Leave empty until you have verified them; it is then shown in the footnote.
+const DATA_LAST_CHECKED = "";
+
+// Matching rules, one entry per programme. A programme is shown only if every rule it lists is met.
+// needs / stages / sectors / sizes: lists of allowed answers (leave a rule out = any answer is fine).
+// omaniOnly: hidden when the owner answers "No / partly" to Omani ownership.
+// prioritySectors: shows a note about sector priority (does not hide the programme).
+// NOTE: "sectors" and "sizes" are not used yet. Add them only after confirming each provider's real criteria.
+const RULES = {
+  sanad:      {needs:["funding"], stages:["new"], omaniOnly:true, prioritySectors:["food"]},
+  workingcap: {needs:["funding"], stages:["established"], omaniOnly:true},
+  odb:        {needs:["funding"], omaniOnly:true},
+  incubation: {needs:["training"], omaniOnly:true},
+  investeasy: {needs:["registration"], omaniOnly:true},
+  digital:    {needs:["marketing"]}
+};
+
+const PROGRAMS = {
+  en: {
+    sanad: {tag:"Riyada · SANAD", title:"SANAD financing", body:"Concessional financing and loan guarantees for Omani-owned small businesses, with priority given to food production and craft industries — built for owners without a long credit history.", eligibility:"Likely a fit if your business is 100% Omani-owned and managed, independently run (not a branch of a larger company), and you hold or can obtain an Entrepreneurship Card.", documents:"Entrepreneurship (Riyada) Card, commercial registration, a basic business plan, and proof of social insurance (PASI) for the owner.", next:"Apply through Riyada once you hold an Entrepreneurship Card.", url:"https://www.sme.gov.om/en/", linkLabel:"Open Riyada"},
+    workingcap: {tag:"Riyada", title:"Working capital & fixed assets financing", body:"Covers everyday running costs — stock, ingredients, equipment, wages — for established businesses, with funding reaching up to RO 100,000 and repayment terms up to 10 years.", eligibility:"Likely a fit if your business is already operating, Omani-owned, and registered with Riyada, since this is aimed at established SMEs rather than brand-new ones.", documents:"Commercial registration, Entrepreneurship Card, recent bank statements (around 6 months if operating), and basic financial records.", next:"Apply through Riyada's financing programmes once registered.", url:"https://www.sme.gov.om/en/", linkLabel:"Open Riyada"},
+    odb: {tag:"Oman Development Bank", title:"ODB priority-sector loans", body:"Concessional loans from RO 5,000 to RO 1,000,000 for priority sectors, including manufacturing and tourism-adjacent services — useful once a business needs financing beyond Riyada's working-capital range.", eligibility:"Worth exploring if you need financing beyond what Riyada's working-capital limit covers, especially for manufacturing, tourism-related, or larger-scale activity.", documents:"Commercial registration, company profile, shareholder ID copies, and financial statements — ODB will confirm the exact list for your sector directly.", next:"Contact Oman Development Bank directly to discuss eligibility.", url:"https://db.om/", linkLabel:"Open ODB"},
+    incubation: {tag:"Riyada", title:"Business incubation & mentoring", body:"Subsidised workspace, hands-on mentoring, and access to government procurement channels — aimed at newer businesses that need guidance as much as money.", eligibility:"Likely a fit for newer or early-stage businesses that need structured guidance, not just funding — no long trading history required.", documents:"Entrepreneurship Card (or eligibility to obtain one), commercial registration, and a short description of your business idea or current operations.", next:"Apply to a Riyada-run incubator in your governorate.", url:"https://www.sme.gov.om/en/", linkLabel:"Open Riyada"},
+    investeasy: {tag:"Invest Easy", title:"One-stop registration", body:"A streamlined government platform for registering and licensing a business, including a commercial registration number for home-based and freelance businesses.", eligibility:"Relevant if your business isn't formally registered yet, or you're formalising a home-based or freelance activity.", documents:"Owner's Omani ID, basic business details (activity type, trade name), and a tenancy or address detail for the business.", next:"Start your registration at Oman's Invest Easy portal.", url:"https://www.business.gov.om/ieasy/wp/en/", linkLabel:"Open Invest Easy"},
+    digital: {tag:"Getting started", title:"Free digital visibility", body:"Before chasing paid marketing, most Omani small businesses are still missing a free Google Business Profile or an active Instagram page — the single biggest, lowest-cost visibility gap for local customers.", eligibility:"Open to any business, regardless of stage or registration status — no eligibility requirements at all.", documents:"Just your business name, address or service area, and a few photos — no official documents needed.", next:"Set up a free Google Business Profile this week.", url:"https://www.google.com/business/", linkLabel:"Open Google Business"}
+  },
+  ar: {
+    sanad: {tag:"ريادة · سند", title:"برنامج سند التمويلي", body:"تمويل ميسّر وضمانات قروض لأصحاب المشاريع الصغيرة العُمانيين، مع أولوية لصناعات الأغذية والحرف — مخصص لمن ليس لديهم سجل ائتماني طويل.", eligibility:"مناسب على الأرجح إذا كان مشروعك مملوكًا ومُدارًا بالكامل من عُمانيين، ومستقلًا (وليس فرعًا لشركة أكبر)، وتمتلك أو يمكنك الحصول على بطاقة رائد الأعمال.", documents:"بطاقة رائد الأعمال، السجل التجاري، خطة عمل بسيطة، وإثبات التأمينات الاجتماعية لصاحب المشروع.", next:"قدّم عبر ريادة بعد الحصول على بطاقة رائد الأعمال.", url:"https://www.sme.gov.om/en/", linkLabel:"فتح موقع ريادة"},
+    workingcap: {tag:"ريادة", title:"تمويل رأس المال التشغيلي والأصول الثابتة", body:"يغطي التكاليف اليومية — المخزون، المواد، المعدات، الرواتب — للمشاريع القائمة، بتمويل يصل إلى ١٠٠،٠٠٠ ريال وفترات سداد تصل إلى ١٠ سنوات.", eligibility:"مناسب على الأرجح إذا كان مشروعك يعمل بالفعل، ومملوكًا لعُمانيين، ومسجّلًا لدى ريادة، فهذا البرنامج موجّه للمشاريع القائمة لا الجديدة تمامًا.", documents:"السجل التجاري، بطاقة رائد الأعمال، كشوف حساب بنكي حديثة (قرابة ٦ أشهر إن كان المشروع يعمل)، وسجلات مالية أساسية.", next:"قدّم عبر برامج التمويل في ريادة بعد التسجيل.", url:"https://www.sme.gov.om/en/", linkLabel:"فتح موقع ريادة"},
+    odb: {tag:"بنك التنمية العُماني", title:"قروض القطاعات ذات الأولوية", body:"قروض ميسّرة من ٥،٠٠٠ إلى ١،٠٠٠،٠٠٠ ريال للقطاعات ذات الأولوية، بما فيها الصناعة والخدمات المرتبطة بالسياحة — مفيد عند الحاجة إلى تمويل يتجاوز نطاق ريادة.", eligibility:"يستحق الاستكشاف إذا كنت تحتاج تمويلًا يتجاوز حدود تمويل رأس المال التشغيلي لدى ريادة، خصوصًا للصناعة أو الأنشطة السياحية أو النطاق الأكبر.", documents:"السجل التجاري، ملف تعريف الشركة، نسخ هويات الشركاء، والقوائم المالية — سيؤكد البنك القائمة الدقيقة حسب قطاعك.", next:"تواصل مباشرة مع بنك التنمية العُماني لمناقشة الأهلية.", url:"https://db.om/", linkLabel:"فتح موقع البنك"},
+    incubation: {tag:"ريادة", title:"الاحتضان والإرشاد", body:"مساحة عمل مدعومة، إرشاد عملي، وفرصة الوصول إلى قنوات الشراء الحكومية — موجّه للمشاريع الجديدة التي تحتاج توجيهًا بقدر حاجتها للمال.", eligibility:"مناسب على الأرجح للمشاريع الجديدة أو في مرحلة مبكرة تحتاج توجيهًا منظمًا، دون الحاجة لسجل تشغيلي طويل.", documents:"بطاقة رائد الأعمال (أو الأهلية للحصول عليها)، السجل التجاري، ووصف مختصر لفكرة مشروعك أو نشاطك الحالي.", next:"قدّم لأحد حاضنات ريادة في محافظتك.", url:"https://www.sme.gov.om/en/", linkLabel:"فتح موقع ريادة"},
+    investeasy: {tag:"Invest Easy", title:"التسجيل من نافذة واحدة", body:"منصة حكومية موحّدة لتسجيل وترخيص المشاريع، تشمل رقم سجل تجاري للمشاريع المنزلية والعاملين المستقلين.", eligibility:"مناسب إذا لم يكن مشروعك مسجّلًا رسميًا بعد، أو كنت بصدد توثيق نشاط منزلي أو عمل حر.", documents:"الهوية العُمانية لصاحب المشروع، تفاصيل أساسية عن النشاط والاسم التجاري، وعنوان أو مكان العمل.", next:"ابدأ تسجيلك عبر منصة Invest Easy.", url:"https://www.business.gov.om/ieasy/wp/en/", linkLabel:"فتح Invest Easy"},
+    digital: {tag:"خطوة أولى", title:"ظهور رقمي مجاني", body:"قبل التفكير بالتسويق المدفوع، لا تزال معظم المشاريع الصغيرة في عُمان تفتقر إلى ملف Google Business مجاني أو حساب إنستغرام نشط — وهي أبسط فجوة ظهور يمكن سدّها بلا تكلفة.", eligibility:"متاح لأي مشروع بغض النظر عن مرحلته أو حالة تسجيله — لا توجد شروط أهلية إطلاقًا.", documents:"فقط اسم مشروعك، العنوان أو منطقة الخدمة، وبعض الصور — لا حاجة لأي مستندات رسمية.", next:"أنشئ ملف Google Business مجاني هذا الأسبوع.", url:"https://www.google.com/business/", linkLabel:"فتح Google Business"}
+  }
+};
+
+let lang = "en";
+const FIELDS = ["type","stage","need","hasCard","ownership","size"];
+const answers = {type:null, stage:null, need:null, hasCard:null, ownership:null, size:null};
+
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+  document.getElementById("btnEN").classList.toggle("active", l==="en");
+  document.getElementById("btnAR").classList.toggle("active", l==="ar");
+  const t = T[l];
+  document.getElementById("brandSub").textContent = t.brandSub;
+  document.getElementById("heroTitle").textContent = t.heroTitle;
+  document.getElementById("heroSub").textContent = t.heroSub;
+  document.getElementById("qLabel1").textContent = t.stepLabels[0];
+  document.getElementById("qLabel2").textContent = t.stepLabels[1];
+  document.getElementById("qLabel3").textContent = t.stepLabels[2];
+  document.getElementById("qLabel4").textContent = t.stepLabels[3];
+  document.getElementById("qLabel5").textContent = t.stepLabels[4];
+  document.getElementById("qLabel6").textContent = t.stepLabels[5];
+  document.getElementById("qTitle1").textContent = t.q1;
+  document.getElementById("qTitle2").textContent = t.q2;
+  document.getElementById("qTitle3").textContent = t.q3;
+  document.getElementById("qTitle4").textContent = t.q4;
+  document.getElementById("qTitle5").textContent = t.q5;
+  document.getElementById("qTitle6").textContent = t.q6;
+  document.getElementById("err1").textContent = t.errPick;
+  document.getElementById("err2").textContent = t.errPick;
+  document.getElementById("err3").textContent = t.errPick;
+  document.getElementById("err4").textContent = t.errPick;
+  document.getElementById("err5").textContent = t.errPick;
+  document.getElementById("err6").textContent = t.errPickLast;
+  document.getElementById("resultEyebrow").textContent = t.resultEyebrow;
+  document.getElementById("guidanceBanner").innerHTML = t.guidanceBanner;
+  document.getElementById("restartBtn").textContent = t.startOver;
+  document.getElementById("footNote").textContent = t.footNote + (DATA_LAST_CHECKED ? " " + t.lastChecked + " " + DATA_LAST_CHECKED + "." : "");
+  buildGrid(1, t.grid1, "type");
+  buildGrid(2, t.grid2, "stage");
+  buildGrid(3, t.grid3, "need");
+  buildGrid(4, t.grid4, "hasCard");
+  buildGrid(5, t.grid5, "ownership");
+  buildGrid(6, t.grid6, "size");
+  document.querySelector('#panel1 .nav-row .btn').textContent = t.continueBtn;
+  document.querySelector('#panel2 .nav-row .btn.ghost').textContent = t.backBtn;
+  document.querySelector('#panel2 .nav-row .btn:not(.ghost)').textContent = t.continueBtn;
+  document.querySelector('#panel3 .nav-row .btn.ghost').textContent = t.backBtn;
+  document.querySelector('#panel3 .nav-row .btn:not(.ghost)').textContent = t.continueBtn;
+  document.querySelector('#panel4 .nav-row .btn.ghost').textContent = t.backBtn;
+  document.querySelector('#panel4 .nav-row .btn:not(.ghost)').textContent = t.continueBtn;
+  document.querySelector('#panel5 .nav-row .btn.ghost').textContent = t.backBtn;
+  document.querySelector('#panel5 .nav-row .btn:not(.ghost)').textContent = t.continueBtn;
+  document.querySelector('#panel6 .nav-row .btn.ghost').textContent = t.backBtn;
+  document.querySelector('#panel6 .nav-row .btn:not(.ghost)').textContent = t.seeMatches;
+  if(document.getElementById("panelResult").classList.contains("active")){
+    renderResult();
+  }
+}
+
+function buildGrid(n, items, field){
+  const grid = document.getElementById("grid"+n);
+  grid.innerHTML = "";
+  items.forEach(item=>{
+    const b = document.createElement("button");
+    b.className = "opt" + (answers[field]===item.v ? " selected" : "");
+    b.setAttribute("aria-pressed", answers[field]===item.v ? "true" : "false");
+    b.innerHTML = `<span class="opt-title">${item.t}</span><span class="opt-sub">${item.s}</span>`;
+    b.onclick = ()=>{
+      answers[field] = item.v;
+      document.getElementById("err"+n).style.display = "none";
+      [...grid.children].forEach(c=>{ c.classList.remove("selected"); c.setAttribute("aria-pressed","false"); });
+      b.classList.add("selected");
+      b.setAttribute("aria-pressed","true");
+    };
+    grid.appendChild(b);
+  });
+}
+
+function next(n){
+  const field = FIELDS[n-1];
+  if(!answers[field]){
+    document.getElementById("err"+n).style.display = "block";
+    return;
+  }
+  document.getElementById("panel"+n).classList.remove("active");
+  document.getElementById("panel"+(n+1)).classList.add("active");
+  document.getElementById("dot"+n).classList.add("done");
+  document.getElementById("dot"+(n+1)).classList.add("active");
+}
+
+function back(n){
+  document.getElementById("panel"+n).classList.remove("active");
+  document.getElementById("panel"+(n-1)).classList.add("active");
+  document.getElementById("dot"+n).classList.remove("active");
+  document.getElementById("dot"+(n-1)).classList.remove("done");
+  document.getElementById("dot"+(n-1)).classList.add("active");
+}
+
+function finish(){
+  if(!answers.size){
+    document.getElementById("err6").style.display = "block";
+    return;
+  }
+  document.getElementById("panel6").classList.remove("active");
+  document.getElementById("dot6").classList.add("done");
+  document.getElementById("panelResult").classList.add("active");
+  renderResult();
+}
+
+function matchPrograms(){
+  let keys = Object.keys(RULES).filter(k=>{
+    const r = RULES[k];
+    if(r.needs && !r.needs.includes(answers.need)) return false;
+    if(r.stages && !r.stages.includes(answers.stage)) return false;
+    if(r.sectors && !r.sectors.includes(answers.type)) return false;
+    if(r.sizes && !r.sizes.includes(answers.size)) return false;
+    if(r.omaniOnly && answers.ownership === "no") return false;
+    return true;
+  });
+  // If nothing fits because of ownership, still show the one programme with no ownership requirement,
+  // so the message below ("free digital visibility is still open to you") matches what is on screen.
+  if(keys.length === 0 && answers.ownership === "no"){ keys = ["digital"]; }
+  return keys;
+}
+
+function labelOf(grid, v){
+  const g = T[lang][grid].find(i=>i.v===v);
+  return g ? g.t : "";
+}
+
+function whyText(k){
+  const r = RULES[k], t = T[lang], parts = [];
+  parts.push(t.whyNeed + " " + labelOf("grid3", answers.need));
+  if(r.stages) parts.push(t.whyStage + " " + labelOf("grid2", answers.stage));
+  if(r.omaniOnly) parts.push(t.whyOwner + " " + labelOf("grid5", answers.ownership));
+  return parts.join(" · ");
+}
+
+function renderResult(){
+  const p = PROGRAMS[lang];
+  const t = T[lang];
+  const keys = matchPrograms();
+  const cardsEl = document.getElementById("resultCards");
+  document.getElementById("answersLine").textContent = t.answersLabel + ": " +
+    [labelOf("grid1",answers.type), labelOf("grid2",answers.stage), labelOf("grid3",answers.need), labelOf("grid6",answers.size)].join(" · ");
+  cardsEl.innerHTML = "";
+  keys.forEach(k=>{
+    const d = p[k];
+    const card = document.createElement("div");
+    card.className = "card";
+    const eligLabel = lang==="ar" ? "الأهلية المحتملة" : "Possible eligibility";
+    const docLabel = lang==="ar" ? "المستندات المطلوبة" : "What you'll likely need";
+    const rule = RULES[k];
+    const sectorNote = rule.prioritySectors ? `<div class="sector-note">${rule.prioritySectors.includes(answers.type) ? t.priorityYes : t.priorityNo}</div>` : "";
+    card.innerHTML = `<span class="tag">${d.tag}</span><h3 class="card-title">${d.title}</h3><p>${d.body}</p><div class="detail-row"><span class="detail-icon">&#10003;</span><span class="detail-text"><b>${eligLabel}</b>${d.eligibility}</span></div><div class="detail-row"><span class="detail-icon">&#128196;</span><span class="detail-text"><b>${docLabel}</b>${d.documents}</span></div>${sectorNote}<div class="why"><b>${t.whyLabel}:</b> ${whyText(k)}</div><div class="next-step"><b>${lang==="ar" ? "الخطوة التالية" : "Next step"}:</b> ${d.next}</div><a class="go-link" href="${d.url}" target="_blank" rel="noopener">${d.linkLabel}</a>`;
+    cardsEl.appendChild(card);
+  });
+  const firstStepBox = document.getElementById("firstStepBox");
+  const readyNote = document.getElementById("readyNote");
+  if(answers.ownership === "no"){
+    firstStepBox.style.display = "block";
+    readyNote.style.display = "none";
+    firstStepBox.innerHTML = lang==="ar"
+      ? `<b>مهم:</b> معظم برامج ريادة وبنك التنمية العُماني تشترط ملكية عُمانية كاملة، لذا هذه البرامج غير مطروحة هنا بناءً على إجابتك. الظهور الرقمي المجاني يبقى متاحًا دون شروط. للتأكد من خيارات أخرى قد تناسب ملكيتك، يُفضّل التواصل مباشرة مع ريادة أو بنك التنمية العُماني.`
+      : `<b>Worth knowing:</b> most Riyada and ODB programmes require full Omani ownership, so they're not shown here based on your answer. Free digital visibility is still open to you. For other options that might fit your ownership structure, it's worth contacting Riyada or ODB directly.`;
+  } else if(answers.hasCard === "no"){
+    firstStepBox.style.display = "block";
+    readyNote.style.display = "none";
+    firstStepBox.innerHTML = `<b>${t.firstStepLabel}:</b> ${t.firstStepBody}<br><a class="go-link" href="https://www.sme.gov.om/en/" target="_blank" rel="noopener">${lang==="ar" ? "فتح موقع ريادة" : "Open Riyada"}</a>`;
+  } else {
+    firstStepBox.style.display = "none";
+    readyNote.style.display = "block";
+    readyNote.textContent = answers.ownership === "unsure"
+      ? (lang==="ar" ? "تحقق من هيكل الملكية قبل التقديم — بعض الشروط تختلف حسب نسبة الملكية العُمانية." : "Double-check your ownership structure before applying — eligibility can shift depending on the exact Omani ownership percentage.")
+      : t.readyNoteBody;
+  }
+}
+
+function restart(){
+  answers.type = null; answers.stage = null; answers.need = null; answers.hasCard = null; answers.ownership = null; answers.size = null;
+  document.getElementById("panelResult").classList.remove("active");
+  document.getElementById("panel1").classList.add("active");
+  document.getElementById("dot1").classList.add("active");
+  document.getElementById("dot2").classList.remove("active","done");
+  document.getElementById("dot3").classList.remove("active","done");
+  document.getElementById("dot4").classList.remove("active","done");
+  document.getElementById("dot5").classList.remove("active","done");
+  document.getElementById("dot6").classList.remove("active","done");
+  setLang(lang);
+}
+
+setLang("en");
+</script>
+</body>
+</html>
